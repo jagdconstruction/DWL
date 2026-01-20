@@ -40,4 +40,189 @@
     }
 
     input, textarea, select {
-      width:
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .activities {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .worker {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 4px;
+      background: #fafafa;
+    }
+
+    .remove-btn {
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 6px;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+
+    .add-btn {
+      background: #2c3e50;
+      color: #fff;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .submit-btn {
+      background: #1d6fa5;
+      color: #fff;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 20px;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>Jag'd Daily Work Log</h1>
+
+<h2>Project Information</h2>
+<label>Project</label><input id="projectName">
+<label>Report Date</label><input type="date" id="date">
+<label>Project Manager</label><input id="pmName">
+
+<h2>Weather</h2>
+<div class="grid-2">
+  <div><label>AM</label><input id="weatherAM"></div>
+  <div><label>PM</label><input id="weatherPM"></div>
+</div>
+
+<h2>Activities Performed</h2>
+<div class="activities">
+  <label><input type="checkbox" value="01-Setup"> 01 - Setup</label>
+  <label><input type="checkbox" value="02-Rigging"> 02 - Rigging</label>
+  <label><input type="checkbox" value="03-Build Containment"> 03 - Build Containment</label>
+  <label><input type="checkbox" value="04-Washing"> 04 - Washing</label>
+  <label><input type="checkbox" value="05-Blast and Prime"> 05 - Blast & Prime</label>
+  <label><input type="checkbox" value="06-Additional Coat"> 06 - Additional Coat</label>
+  <label><input type="checkbox" value="07-Power Tool"> 07 - Power Tool</label>
+  <label><input type="checkbox" value="08-Intermediate"> 08 - Intermediate</label>
+  <label><input type="checkbox" value="09-Finish"> 09 - Finish</label>
+  <label><input type="checkbox" value="10-Remove Containment"> 10 - Remove Containment</label>
+  <label><input type="checkbox" value="11-Remove Rigging"> 11 - Remove Rigging</label>
+  <label><input type="checkbox" value="12-Caulking"> 12 - Caulking</label>
+</div>
+
+<h2>Location / Description of Work</h2>
+<textarea id="workPerformed"></textarea>
+
+<h2>Additional Notes</h2>
+<textarea id="notes"></textarea>
+
+<h2>Safety Huddle Topic</h2>
+<input id="safetyTopic">
+
+<h2>Workforce</h2>
+<div id="workers"></div>
+<button class="add-btn" onclick="addWorker()">+ Add Worker</button>
+
+<button class="submit-btn" onclick="submitDWL()">Submit Daily Work Log</button>
+
+</div>
+
+<script>
+let workers = [];
+
+function addWorker() {
+  const id = Date.now();
+  workers.push(id);
+
+  const div = document.createElement('div');
+  div.className = 'worker';
+  div.id = id;
+  div.innerHTML = `
+    <label>Employee</label><input>
+    <label>Location</label><input>
+    <label>Activity</label><input>
+    <label>Class</label><input>
+    <label>Straight Hours</label><input type="number" step="0.25">
+    <label>Overtime Hours</label><input type="number" step="0.25">
+    <label>No Lunch</label><input>
+    <label>PT</label><input>
+    <label>RT</label><input>
+    <button class="remove-btn" onclick="removeWorker(${id})">Remove Worker</button>
+  `;
+  document.getElementById('workers').appendChild(div);
+}
+
+function removeWorker(id) {
+  workers = workers.filter(w => w !== id);
+  document.getElementById(id).remove();
+}
+
+function submitDWL() {
+  const activities = [...document.querySelectorAll('.activities input:checked')]
+    .map(a => a.value);
+
+  const crew = workers.map(id => {
+    const inputs = document.getElementById(id).querySelectorAll('input');
+    return {
+      employee: inputs[0].value,
+      location: inputs[1].value,
+      activity: inputs[2].value,
+      class: inputs[3].value,
+      straight: inputs[4].value,
+      overtime: inputs[5].value,
+      noLunch: inputs[6].value,
+      pt: inputs[7].value,
+      rt: inputs[8].value
+    };
+  });
+
+  const data = {
+    project: projectName.value,
+    date: date.value,
+    pm: pmName.value,
+    weatherAM: weatherAM.value,
+    weatherPM: weatherPM.value,
+    activities,
+    workPerformed: workPerformed.value,
+    notes: notes.value,
+    safetyTopic: safetyTopic.value,
+    workforce: crew
+  };
+
+  const file = `DWL_${data.project || 'Project'}_${data.date || 'Date'}_${data.pm || 'PM'}.json`
+    .replace(/[^a-z0-9_.-]/gi, '_');
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = file;
+  a.click();
+}
+</script>
+
+</body>
+</html>
